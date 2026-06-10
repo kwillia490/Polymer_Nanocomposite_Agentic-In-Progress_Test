@@ -1,0 +1,310 @@
+
+Running prologue...
+
+LAMMPS (10 Dec 2025)
+  using 1 OpenMP thread(s) per MPI task
+units           real
+dimension       3
+boundary        p p p
+variable		myid string PE_IFFPlyS0
+variable		data string PE_IFFDfyS0.dat.gz
+log		    ${myid}.log.lammps
+log		    PE_IFFPlyS0.log.lammps
+variable	maxbond equal 125 # This number should be the number of monomers in the box for a linear polymerization like PE. There can only be 125 bonds.
+variable	xlinkd equal 0.99 # 0.2 means 20% polymerized, so 0.99 means 99% polymerized
+variable	pBonds equal v_maxbond*v_xlinkd
+variable	Bndchk equal v_pBonds-1
+
+variable thermo_freq equal 1000
+variable dump_freq equal 10*${thermo_freq}
+variable dump_freq equal 10*1000
+timestep 1 #fs
+variable temp equal 300 # Temperature of reaction, in Kelvin
+variable prob equal 0.2 # Probability of a reaction occurring
+variable prob_seed equal 125874 # Seed for random number generator
+##############################
+### Force Field Parameters ###
+##############################
+
+atom_style	full
+bond_style class2
+angle_style class2
+dihedral_style class2
+improper_style class2
+special_bonds lj/coul 0 0 1
+pair_style lj/class2/coul/long 10.0
+pair_modify mix sixthpower
+kspace_style pppm 1e-6 # K-space must be turned on when using long-range interactions.
+read_data       ${data} extra/bond/per/atom 50 extra/angle/per/atom 50 extra/dihedral/per/atom 70 extra/improper/per/atom 60 extra/special/per/atom 20
+read_data       PE_IFFDfyS0.dat.gz extra/bond/per/atom 50 extra/angle/per/atom 50 extra/dihedral/per/atom 70 extra/improper/per/atom 60 extra/special/per/atom 20
+Reading data file ...
+  orthogonal box = (-13.220627 -13.220627 -13.220627) to (13.220627 13.220627 13.220627)
+  1 by 2 by 5 MPI processor grid
+  reading atoms ...
+  3000 atoms
+  reading velocities ...
+  3000 velocities
+  scanning bonds ...
+  54 = max bonds/atom
+  scanning angles ...
+  56 = max angles/atom
+  scanning dihedrals ...
+  82 = max dihedrals/atom
+  scanning impropers ...
+  64 = max impropers/atom
+  orthogonal box = (-13.220627 -13.220627 -13.220627) to (13.220627 13.220627 13.220627)
+  1 by 2 by 5 MPI processor grid
+  reading bonds ...
+  2875 bonds
+  reading angles ...
+  5250 angles
+  reading dihedrals ...
+  7125 dihedrals
+  reading impropers ...
+  3250 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        1       
+  special bond factors coul:  0        0        1       
+     4 = max # of 1-2 neighbors
+     6 = max # of 1-3 neighbors
+    30 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.072 seconds
+# These extra terms after read_data ${data} tell LAMMPS to include extra space in its data structures to accomodate the new topology as polymerization proceeds.
+
+# The pre- and post-reaction templates are LAMMPS molecule files so we read them in here with the molecule command and name them pre and post.
+molecule        pre PE_PreReaction_typed_IFF_merged.lmpmol
+Read molecule template pre:
+bond_react_merge.py reduce or remove option used. Updating Header with new atomIDs > BondingIDs = [5, 14, 5, 14]; Reduce = [4, 4]; > bond_react_merge: v1.16 / 2 November 2024 molecule file (filetag: pre1)
+  1 molecules
+  0 fragments
+  0 bodies
+  26 atoms with max type 3
+  24 bonds with max type 4
+  42 angles with max type 7
+  48 dihedrals with max type 7
+  26 impropers with max type 5
+molecule        post PE_PostReaction_typed_IFF_merged.lmpmol
+Read molecule template post:
+mp > atom_typing v1.11 / 14 April 2025 w/PCFF-IFF atom-types > all2lmp: v1.22 / 14 April 2025  Class: 2; Reduce = [4,4]; BondingIDs = [8,25,8,25] > bond_react_merge: v1.16 / 2 November 2024 molecule file (filetag: post1)
+  1 molecules
+  0 fragments
+  0 bodies
+  26 atoms with max type 3
+  25 bonds with max type 3
+  48 angles with max type 6
+  63 dihedrals with max type 6
+  32 impropers with max type 4
+
+##############################
+### Thermo & Dump Settings ###
+##############################
+compute ppa all pe/atom
+# Checking for residual stresses
+compute         p all pressure thermo_temp
+variable        sxx equal -0.101325*c_p[1] #in MPa
+variable        syy equal -0.101325*c_p[2] #in MPa
+variable        szz equal -0.101325*c_p[3] #in MPa
+fix             sxx_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_sxx
+fix             sxx_ave all ave/time 1 1000 ${thermo_freq} v_sxx
+fix             sxx_ave all ave/time 1 1000 1000 v_sxx
+fix             syy_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_syy
+fix             syy_ave all ave/time 1 1000 ${thermo_freq} v_syy
+fix             syy_ave all ave/time 1 1000 1000 v_syy
+fix             szz_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_szz
+fix             szz_ave all ave/time 1 1000 ${thermo_freq} v_szz
+fix             szz_ave all ave/time 1 1000 1000 v_szz
+
+thermo ${thermo_freq}
+thermo 1000
+thermo_style custom step temp press etotal ke pe epair ebond eangle edihed eimp elong lx ly lz pxx pyy pzz vol density f_sxx_ave f_syy_ave f_szz_ave
+
+dump 1 all custom/gz ${dump_freq} ${myid}.lammpstrj.gz x y z type id #c_ppa
+dump 1 all custom/gz 10000 ${myid}.lammpstrj.gz x y z type id 
+dump 1 all custom/gz 10000 PE_IFFPlyS0.lammpstrj.gz x y z type id 
+
+####################
+### Run Settings ###
+####################
+
+variable	totaltime equal 1000000  # 1 ns
+variable	totalsteps equal ${totaltime}/dt
+variable	totalsteps equal 1000000/dt
+variable        Time equal step*dt/1000 # time in picoseconds 1000 ps
+
+#------------------fix bond/react----------------
+# Please see the fix bond/react page in the LAMMPS documentation for more information on these parameters.
+fix	1 all bond/react stabilization yes statted_grp .03   react rxn1 all 100 0 7 pre post pre1-post1_rxn-map_uncommented.txt prob ${prob} ${prob_seed} stabilize_steps 100
+fix	1 all bond/react stabilization yes statted_grp .03   react rxn1 all 100 0 7 pre post pre1-post1_rxn-map_uncommented.txt prob 0.2 ${prob_seed} stabilize_steps 100
+fix	1 all bond/react stabilization yes statted_grp .03   react rxn1 all 100 0 7 pre post pre1-post1_rxn-map_uncommented.txt prob 0.2 125874 stabilize_steps 100
+dynamic group bond_react_MASTER_group defined
+dynamic group statted_grp_REACT defined
+fix     2 statted_grp_REACT npt temp ${temp} ${temp} 1000 aniso 1 1 1000
+fix     2 statted_grp_REACT npt temp 300 ${temp} 1000 aniso 1 1 1000
+fix     2 statted_grp_REACT npt temp 300 300 1000 aniso 1 1 1000
+fix     3 bond_react_MASTER_group temp/rescale 1 ${temp} ${temp} 10 1
+fix     3 bond_react_MASTER_group temp/rescale 1 300 ${temp} 10 1
+fix     3 bond_react_MASTER_group temp/rescale 1 300 300 10 1
+
+#------------User defined crosslink density---------------
+
+variable	rn1 equal f_1[1]
+variable	nBonds equal v_rn1
+
+thermo_style custom step temp press etotal ke pe epair ebond eangle edihed eimp elong lx ly lz pxx pyy pzz vol density f_sxx_ave f_syy_ave f_szz_ave f_1[1] v_nBonds v_Bndchk
+
+# Here we set up a loop with 20000 step increments and a total run time of 1000000. The loop will loop 50 times.
+variable loop_time equal $(20000)
+variable loop_time equal 20000
+
+label loop
+variable poly_loop loop $(v_totalsteps/v_loop_time)
+variable poly_loop loop 50
+run             ${loop_time}
+run             20000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+- fix bond/react: https://reacter.org, https://doi.org/10.1016/j.polymer.2017.09.038, https://doi.org/10.1021/acs.macromol.0c02012, https://doi.org/10.1016/j.cpc.2024.109287
+The log file lists these citations in BibTeX format.
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.2944695
+  grid = 20 20 20
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00025058666
+  estimated relative force accuracy = 7.5463429e-07
+  using double precision MKL FFT
+  3d grid and FFT values/proc = 5049 800
+Generated 3 of 3 mixed pair_coeff terms from sixthpower/sixthpower mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/class2/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) fix bond/react, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 0
+  Time step     : 1
+Per MPI rank memory allocation (min/avg/max) = 77.98 | 78.03 | 78.37 Mbytes
+   Step          Temp          Press          TotEng         KinEng         PotEng         E_pair         E_bond        E_angle        E_dihed        E_impro         E_long           Lx             Ly             Lz            Pxx            Pyy            Pzz           Volume        Density       f_sxx_ave      f_syy_ave      f_szz_ave        f_1[1]        v_nBonds       v_Bndchk   
+         0   302.38953      35695.093      3073.8023      2703.1959      370.60646      105.20618      903.48006      1418.4388     -2146.71        90.191433     -2019.0712      26.441253      26.441253      26.441253      37416.62       35186.203      34482.455      18486.134      1.26           0              0              0              0              0              122.75       
+      1000   300.35717     -671529.81      91393.506      2685.0277      88708.478     -468.96638      89906.323      2494.0648     -3262.6237      39.680124     -2022.1818      26.36387       26.300512      26.245114     -1541067.2     -205088.79     -267816.33      18197.924      1.2799553      570.22652      683.39893      1335.8278      99             99             122.75       
+      2000   377.14385      26299.028      4726.9551      3371.4583      1355.4968     -552.5308       2839.7494      2613.6819     -3579.964       34.560246     -2022.8176      27.275214      25.005046      26.258978      46027.7       -1610.2395      34737.297      17909.095      1.3005978      1055.0058      11614.839      8128.4363      118            118            122.75       
+      3000   404.70374      18435.528      2384.2139      3617.8286     -1233.6147     -1238.6427      1041.5844      2428.536      -3488.553       23.46064      -2022.0866      28.965208      27.039084      25.481143      12777.618      21760.391      20768.574      19956.644      1.1671566     -1219.1938     -3105.9714      11123.986      122            122            122.75       
+      4000   352.16001      4339.3922      1219.389       3148.1166     -1928.7276     -1586.3741      1014.6828      2157.4565     -3534.7588      20.26606      -2020.2148      30.490449      28.485805      26.980103      6293.5321      4175.3863      2549.258       23433.433      0.99398705    -980.132       -991.66468     -1087.7296      122            122            122.75       
+      5000   321.87476      3933.6817      669.90972      2877.3831     -2207.4734     -1581.9565      965.87304      1949.9048     -3557.0847      15.789873     -2018.7585      31.341815      29.240776      27.722922      2204.6618      4625.2322      4971.151       25406.921      0.91677888    -299.56046     -288.15671     -296.0217       122            122            122.75       
+      6000   303.76483      853.6863       324.61448      2715.4903     -2390.8759     -1599.1472      957.17749      1761.5543     -3524.0297      13.569205     -2018.0402      31.887943      29.650053      28.23817       186.28746      1392.7084      982.06307      26698.602      0.87242505    -134.17475     -102.31366     -141.18607      122            122            122.75       
+      7000   331.10857      1048.7683      788.34737      2959.9283     -2171.5809     -1585.7063      932.50697      2029.6215     -3565.6278      17.624655     -2019.3887      32.106099      28.540545      27.027306      695.1509       2145.0675      306.08659      24765.811      0.94051143     563.31594      4397.136       4883.2677      123            123            122.75       
+      8000   300.59448      1509.743       385.42911      2687.1491     -2301.72       -1540.8523      868.04622      1865.5425     -3507.6403      13.183794     -2018.1883      32.749637      29.138987      27.495673      3725.7309     -150.26324      953.76135      26238.881      0.88771047    -212.80852     -223.25009     -181.69223      123            123            122.75       
+      9000   290.08161     -229.89233      171.86355      2593.1698     -2421.3063     -1571.8298      894.32583      1801.591      -3558.6046      13.211198     -2017.9254      33.222589      29.382169      27.747203     -2448.828       1455.0543      304.09671      27085.48       0.85996366    -92.475874     -54.417909     -57.289719      123            123            122.75       
+     10000   282.32296     -978.30272      131.53352      2523.8118     -2392.2783     -1566.2945      953.25786      1772.4341     -3565.7857      14.10992      -2017.126       33.412817      29.658849      27.974477     -2279.5824      1081.5025     -1736.8282      27722.306      0.84020893    -27.914474     -45.271416     -42.578221      123            123            122.75       
+     11000   296.58017      235.94126      272.76449      2651.2634     -2378.4989     -1554.6439      952.89762      1785.12       -3576.8424      14.969785     -2017.2228      33.498336      29.649108      28.100928      3796.836       125.33786     -3214.3501      27909.723      0.83456682    -6.7413115      10.927858     -12.478497      123            123            122.75       
+     12000   308.67375      1126.9228      431.88924      2759.3733     -2327.4841     -1588.4907      952.34235      1853.865      -3559.4702      14.269479     -2017.3648      33.610316      29.642911      27.990564      1607.4707      1397.7947      375.50307      27887.213      0.83524048    -6.3566561     -11.466087      12.289021      123            123            122.75       
+     13000   307.88031     -3.3591012      486.29195      2752.2804     -2265.9885     -1574.3219      1024.6885      1823.038      -3552.5415      13.148512     -2017.4373      33.535874      29.773854      28.059492      728.65205     -5.2105908     -733.51877      28017.185      0.83136579    -11.481898     -3.4596404     -9.8210897      123            123            122.75       
+     14000   303.01684      121.43135      402.45617      2708.8037     -2306.3475     -1574.463       1032.8247      1769.004      -3546.6418      12.928606     -2017.3157      33.715263      29.488135      28.107429     -211.92626     -167.12008      743.34038      27944.412      0.83353082     13.823297      10.194687      1.5066346      123            123            122.75       
+     15000   294.17622     -1936.566       266.48789      2629.7734     -2363.2855     -1575.1409      952.41449      1820.7258     -3573.8513      12.566345     -2016.8588      33.390482      29.389286      29.077792     -1975.8119     -1526.0725     -2307.8135      28534.689      0.81628815     0.81826254     0.67862194    -20.637238      123            123            122.75       
+     16000   298.15306     -230.71395      223.29329      2665.3242     -2442.0309     -1580.2679      913.96406      1785.0091     -3573.6557      12.919513     -2017.5051      32.993252      29.037364      29.277389      484.27927      647.48103     -1823.9022      28048.824      0.83042801     16.00239       8.7340454      2.1551265      123            123            122.75       
+     17000   291.15164     -3.8873249      286.37704      2602.7353     -2316.3583     -1589.5367      1010.5141      1869.9468     -3620.3194      13.036895     -2017.7432      32.500552      29.085885      29.199988     -1564.8942     -1942.2672      3495.4995      27602.962      0.84384165    -13.316474      0.25876418    -3.0326687      123            123            122.75       
+     18000   300.98941     -641.62648      370.02912      2690.6796     -2320.6505     -1596.0307      993.49529      1819.1488     -3551.3238      14.059912     -2018.2079      32.635612      29.061191      28.866601      81.743508     -1855.7951     -150.82786      27377.943      0.85077716    -8.6061413     -27.127073     -13.216795      123            123            122.75       
+     19000   302.33058     -290.01425      401.24641      2702.6689     -2301.4225     -1546.4765      1005.3506      1824.6707     -3596.66        11.69258      -2017.0358      32.869719      29.706858      29.221197      1534.4674     -1723.2798     -681.23033      28533.216      0.81633031     17.559002      16.846575      15.059998      123            123            122.75       
+     20000   302.5997      -902.16576      357.1521       2705.0747     -2347.9226     -1580.5253      977.15305      1843.8547     -3600.6736      12.268481     -2017.329       32.846659      29.810485      28.717164     -899.663       -377.01874     -1429.8155      28119.124      0.82835188    -14.071991      2.3808918     -4.8889998      123            123            122.75       
+Loop time of 100.35 on 10 procs for 20000 steps with 3000 atoms
+
+Performance: 17.220 ns/day, 1.394 hours/ns, 199.302 timesteps/s, 597.907 katom-step/s
+100.0% CPU use with 10 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 39.479     | 43.436     | 46.494     |  34.8 | 43.28
+Bond    | 5.4392     | 5.6872     | 6.2678     |  11.2 |  5.67
+Kspace  | 9.0595     | 12.11      | 15.832     |  68.3 | 12.07
+Neigh   | 2.7167     | 2.7749     | 2.8327     |   3.5 |  2.77
+Comm    | 1.7413     | 2.2467     | 2.7792     |  29.9 |  2.24
+Output  | 0.0031581  | 0.011293   | 0.020412   |   5.1 |  0.01
+Modify  | 33.602     | 33.643     | 33.687     |   0.6 | 33.53
+Other   |            | 0.4408     |            |       |  0.44
+
+Nlocal:            300 ave         314 max         279 min
+Histogram: 1 0 0 2 0 1 1 3 0 2
+Nghost:         6744.1 ave        6776 max        6703 min
+Histogram: 2 0 0 0 1 1 2 2 0 2
+Neighs:         115891 ave      125215 max       99808 min
+Histogram: 1 0 0 1 1 0 1 4 1 1
+
+Total # of neighbors = 1158908
+Ave neighs/atom = 386.30267
+Ave special neighs/atom = 11.156667
+Neighbor list builds = 798
+Dangerous builds = 0
+write_data ${myid}_${poly_loop}x${loop_time}.dat # Writing out a data file every so often is good practice to guard against unexpected failures (LAMMPS or HPC hardware) and running out of wall clock time.
+write_data PE_IFFPlyS0_${poly_loop}x${loop_time}.dat 
+write_data PE_IFFPlyS0_1x${loop_time}.dat 
+write_data PE_IFFPlyS0_1x20000.dat 
+System init for write_data ...
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.27779897
+  grid = 20 18 18
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00024648012
+  estimated relative force accuracy = 7.4226756e-07
+  using double precision MKL FFT
+  3d grid and FFT values/proc = 4320 720
+Generated 3 of 3 mixed pair_coeff terms from sixthpower/sixthpower mixing rule
+shell pigz ${myid}_${poly_loop}x${loop_time}.dat
+shell pigz PE_IFFPlyS0_${poly_loop}x${loop_time}.dat
+shell pigz PE_IFFPlyS0_1x${loop_time}.dat
+shell pigz PE_IFFPlyS0_1x20000.dat
+if "${poly_loop} > 1" then "shell rm ${myid}_$(v_poly_loop-1)x${loop_time}.dat.gz"
+if "${nBonds}>${Bndchk}" then "jump SELF break"
+jump SELF break
+write_data 	${myid}.dat
+write_data 	PE_IFFPlyS0.dat
+System init for write_data ...
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.27779897
+  grid = 20 18 18
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00024648012
+  estimated relative force accuracy = 7.4226756e-07
+  using double precision MKL FFT
+  3d grid and FFT values/proc = 4320 720
+Generated 3 of 3 mixed pair_coeff terms from sixthpower/sixthpower mixing rule
+shell pigz ${myid}.dat
+shell pigz PE_IFFPlyS0.dat
+shell rm ${myid}_${poly_loop}x${loop_time}.dat.gz
+shell rm PE_IFFPlyS0_${poly_loop}x${loop_time}.dat.gz
+shell rm PE_IFFPlyS0_1x${loop_time}.dat.gz
+shell rm PE_IFFPlyS0_1x20000.dat.gz
+Total wall time: 0:01:41
+
++------------------------------------------------------------------------+
+Memory usage reported in GB
+                       % of     user     user     user    total    total
+Node                  limit      max    limit  current  current     phys
+x1302c3s0b0n2          0.17     0.56   335.00     0.32    10.97   376.95
+Memory summary:
+		min    0.56 GB
+		max    0.56 GB
+		ave    0.56 GB
++------------------------------------------------------------------------+
+

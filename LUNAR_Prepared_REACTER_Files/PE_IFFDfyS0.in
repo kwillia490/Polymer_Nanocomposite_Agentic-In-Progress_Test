@@ -1,0 +1,130 @@
+# The purpose of this simulation is to densify a system of 125 PE monomers to the amorphous density. Starting off with minimizing the PE monomer, then replicating to 125 monomers, then NVE with a 0.1 Angstrom limiter to help with stability, then NVT at 300 K for 100 ps for the atoms to come together, then NPT at 300 K and 1.0 atm for 1 ns, then fix deform and NVT at 300 K to compress the box to the final density at a rate of 20 Angstroms per ns.
+
+# Simulation History
+# IFF
+# No simulation for the PE monomer.
+#---------initialization---------
+echo both
+units 		real
+dimension	3
+boundary	p p p
+atom_style	full
+variable myid string PE_IFFDfyS0
+variable data string PE_Test_System.data
+variable target_density equal 1.26 # density in g/cc
+log ${myid}.log.lammps
+#--------force-field------------
+bond_style class2
+angle_style class2
+dihedral_style class2
+improper_style class2
+special_bonds lj/coul 0 0 1
+pair_style lj/class2/coul/cut 10.0 # Change to long after polymerization
+pair_modify mix sixthpower
+#kspace_style pppm 1e-6 # uncomment after polymerization
+read_data ${data}
+
+#-----------settings------------
+
+timestep        1
+variable        Time equal step*dt/1000 #time in picoseconds
+thermo_style    custom step v_Time temp press etotal ke pe epair ebond eangle edihed eimp elong lx ly lz density
+
+# Minimize the PE monomer
+min_style	cg
+minimize 1.0e-4 1.0e-6 1000 10000
+reset_timestep	0
+
+#replicate 5 5 5 # 125 PE monomers
+
+# Calculate thermo frequency from runtime
+variable thermofreq equal 2000
+
+# Calculate dump frequency from runtime
+variable dumpfreq equal $(10*round(v_thermofreq))
+
+#------------run------------
+
+thermo          ${thermofreq} 
+thermo_modify   flush yes
+dump            1 all custom/gz ${dumpfreq} ${myid}.lammpstrj.gz x y z type id
+dump_modify     1 flush yes
+
+
+fix 1 all nve/limit 0.1
+run 10000 # 10 ps
+unfix 1
+
+velocity all create 300 67435
+
+fix 2 all balance 10000 1.05 shift xyz 20 1.05
+fix 1 all nvt temp 300 300 1000
+run 100000
+unfix 1
+write_data ${myid}_after_NVT.dat
+shell pigz -f ${myid}_after_NVT.dat
+
+            
+fix 1 all npt temp 300 300 100 iso 1.0 1.0 1000
+
+label npt_loop
+variable npt loop 50
+run 20000 # 20 ps
+write_data ${myid}_NPT${npt}x20ps.dat
+shell pigz ${myid}_NPT${npt}x20ps.dat
+if "${npt} > 1" then "shell rm ${myid}_NPT$(v_npt-1)x20ps.dat.gz"
+next npt
+jump SELF npt_loop
+unfix 1
+unfix 2
+
+variable    rho equal ${target_density} # density in g/cc 
+variable    velocity_angperns equal 20 # rate of densifying in A/ns
+variable    erate equal $(v_velocity_angperns/lz) # Calculate strain rate in 1/ns
+variable    erate_fs equal $(v_erate/10^6) # Convert strain rate to 1/fs
+variable    rhoa equal ${rho}/(10^8)^3 # density of PLA in g/A^3
+variable    masssys equal $(vol*density*(10^-8)^3) # mass of system in g
+variable    finalvol equal $(v_masssys/v_rhoa) # final volume needed to achieve v_rhoa density
+variable    lf equal $(v_finalvol^(1/3)) # final length of cubic box needed to achieve v_rhoa density
+variable    dlx equal abs(v_lf-lx)
+variable    dly equal abs(v_lf-ly)
+variable    dlz equal abs(v_lf-lz)
+variable	delta_t equal $(round(abs((v_lf/lz-1)/v_erate_fs))) # Calculate time in fs to deform the length at the specified rate
+
+# Debugging
+variable	volume equal vol
+variable    v0 equal ${volume}
+print 'current volume of system is ${v0} A^3'
+print 'mass of system is ${masssys} g'
+print 'lxi = $(lx) A'
+print 'lyi = $(ly) A'
+print 'lzi = $(lz) A'
+print 'lf = ${lf} A'
+print 'dlx = $(v_dlx) A'
+print 'dly = $(v_dly) A'
+print 'dlz = $(v_dlz) A'
+print 'strain rate used as erate is ${erate_fs} 1/fs'
+print 'Runtime = ${delta_t} fs'
+print 'strain rate in x is $((v_lf/lx-1)/v_delta_t) 1/fs'
+print 'strain rate in y is $((v_lf/ly-1)/v_delta_t) 1/fs'
+print 'strain rate in z is $((v_lf/lz-1)/v_delta_t) 1/fs'
+
+fix 1 all nvt temp 300 300 1000
+fix 2 all deform 1 x final -$(v_lf/2) $(v_lf/2) y final -$(v_lf/2) $(v_lf/2) z final -$(v_lf/2) $(v_lf/2)
+fix 3 all balance 10000 1.05 shift xyz 20 1.05
+run $(v_delta_t)
+write_data ${myid}.dat
+shell pigz ${myid}.dat
+unfix 3
+unfix 2
+unfix 1
+
+#Run density profile
+fix 1 all nvt temp 500 500 1000
+compute x all chunk/atom bin/1d x lower $(lx/20) units box
+compute y all chunk/atom bin/1d y lower $(ly/20) units box
+compute z all chunk/atom bin/1d z lower $(lz/20) units box
+fix 2 all ave/chunk 1000 1 1000 x density/mass file ${myid}_densityprofile_x.txt
+fix 3 all ave/chunk 1000 1 1000 y density/mass file ${myid}_densityprofile_y.txt
+fix 4 all ave/chunk 1000 1 1000 z density/mass file ${myid}_densityprofile_z.txt
+run                1000 # 1 ps

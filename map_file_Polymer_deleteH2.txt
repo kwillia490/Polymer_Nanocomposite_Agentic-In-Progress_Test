@@ -1,0 +1,45 @@
+mapping file for Polymer polymerization
+
+3 edgeIDs
+2 deleteIDs
+20 equivalences
+
+InitiatorIDs
+
+6
+13
+
+EdgeIDs
+
+1
+17
+20
+
+DeleteIDs
+
+7
+12
+
+Equivalences
+
+1 1
+2 2
+3 3
+4 4
+5 5
+6 6
+7 7
+8 8
+9 9
+10 10
+11 11
+12 12
+13 13
+14 14
+15 15
+16 16
+17 17
+18 18
+19 19
+20 20
+

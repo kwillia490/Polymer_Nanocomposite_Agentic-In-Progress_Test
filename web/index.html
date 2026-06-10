@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Polymer Workflow</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <aside class="control-panel">
+        <div class="brand">
+          <p class="eyebrow">LAMMPS workflow</p>
+          <h1>Polymer Run Control</h1>
+          <div id="readiness" class="readiness pending">Checking</div>
+        </div>
+
+        <section class="panel-section">
+          <h2>Environment</h2>
+          <label>
+            <span>LAMMPS binary</span>
+            <input id="lammpsBin" type="text" autocomplete="off" placeholder="/path/to/lmp">
+          </label>
+          <label>
+            <span>MPI command</span>
+            <input id="mpiCommand" type="text" autocomplete="off" value="mpiexec">
+          </label>
+          <label>
+            <span>Slurm account</span>
+            <input id="slurmAccount" type="text" autocomplete="off">
+          </label>
+          <label>
+            <span>Email</span>
+            <input id="slurmMailUser" type="email" autocomplete="off">
+          </label>
+        </section>
+
+        <section class="panel-section compact-grid">
+          <label>
+            <span>Queue</span>
+            <input id="queue" type="text" value="standard">
+          </label>
+          <label>
+            <span>Nodes</span>
+            <input id="nodes" type="number" min="1" value="1">
+          </label>
+          <label>
+            <span>Cores</span>
+            <input id="cores" type="number" min="1" value="128">
+          </label>
+        </section>
+
+        <section class="panel-section">
+          <h2>Inputs</h2>
+          <label>
+            <span>Start data override</span>
+            <input id="startData" type="text" autocomplete="off" placeholder="optional path">
+          </label>
+          <label>
+            <span>Final data for postprocess</span>
+            <select id="finalData"></select>
+          </label>
+          <div class="toggles">
+            <label class="toggle">
+              <input id="dryRun" type="checkbox">
+              <span>Dry run</span>
+            </label>
+            <label class="toggle danger-toggle">
+              <input id="submitJobs" type="checkbox">
+              <span>Submit jobs</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <h2>Run Bundle</h2>
+          <label>
+            <span>Run directory</span>
+            <input id="runDir" type="text" autocomplete="off" placeholder="blank creates runs/Polymer_run_*">
+          </label>
+          <label>
+            <span>New run name</span>
+            <input id="runName" type="text" autocomplete="off" placeholder="optional">
+          </label>
+        </section>
+
+        <section class="actions">
+          <button id="validateBtn" type="button">Validate</button>
+          <button id="prepareBtn" type="button">Prepare Files</button>
+          <button id="buildBtn" type="button">Generate Jobs</button>
+          <button id="postprocessBtn" type="button">Postprocess</button>
+          <button id="allBtn" type="button">Run All</button>
+          <button id="dummyBtn" class="wide" type="button">Make Dummy Data</button>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Project root</p>
+            <p id="projectRoot" class="root-path">Loading</p>
+          </div>
+          <button id="refreshBtn" class="secondary" type="button">Refresh</button>
+        </header>
+
+        <nav class="tabs" aria-label="Workspace views">
+          <button id="prepareTabBtn" class="tab-button active" type="button">Prepare</button>
+          <button id="workflowTabBtn" class="tab-button" type="button">Workflow</button>
+          <button id="analysisTabBtn" class="tab-button" type="button">Analysis</button>
+        </nav>
+
+        <div id="prepareView" class="view active">
+          <section class="prepare-board">
+            <div class="section-heading">
+              <div>
+                <h2>Prepare Run Files</h2>
+                <p>Creates a portable run bundle with edited LAMMPS inputs, copied start data, and seed records.</p>
+              </div>
+              <label class="toggle">
+                <input id="showAdvanced" type="checkbox">
+                <span>Advanced controls</span>
+              </label>
+            </div>
+
+            <div class="prepare-grid">
+              <fieldset>
+                <legend>Basic Densification</legend>
+                <label><span>Target density g/cc</span><input id="targetDensity" type="number" step="0.001" value="1.264"></label>
+                <label><span>Densify temperature K</span><input id="densifyTemp" type="number" step="0.01" value="300"></label>
+                <label><span>Densify pressure atm</span><input id="densifyPressure" type="number" step="0.01" value="1.0"></label>
+              </fieldset>
+
+              <fieldset>
+                <legend>Annealing</legend>
+                <label><span>Heat from K</span><input id="annealHeatStart" type="number" step="0.01" value="300"></label>
+                <label><span>Heat to K</span><input id="annealHeatEnd" type="number" step="0.01" value="600"></label>
+                <label><span>Cool to K</span><input id="annealCoolLow" type="number" step="0.01" value="300"></label>
+              </fieldset>
+
+              <fieldset>
+                <legend>Equilibration</legend>
+                <label><span>First eq temp K</span><input id="firstEqTemp" type="number" step="0.01" value="300"></label>
+                <label><span>Final eq temp K</span><input id="finalEqTemp" type="number" step="0.01" value="300"></label>
+                <label><span>Timestep fs</span><input id="timestep" type="number" step="0.001" value="1"></label>
+              </fieldset>
+            </div>
+
+            <section class="polymer-panel">
+              <div class="section-heading">
+                <h2>Polymerization</h2>
+                <div class="toggles">
+                  <label class="toggle">
+                    <input id="polySameSettings" type="checkbox">
+                    <span>Use same stage values</span>
+                  </label>
+                  <label class="toggle">
+                    <input id="seedModeAuto" type="checkbox" checked>
+                    <span>Auto-generate seeds</span>
+                  </label>
+                </div>
+              </div>
+              <div class="poly-stage-grid">
+                <fieldset>
+                  <legend>Stage 1</legend>
+                  <label><span>Monomers / max bonds</span><input id="poly1Monomers" type="number" min="1" value="2999"></label>
+                  <label><span>Target conversion</span><input id="poly1Xlinkd" type="number" min="0" max="1" step="0.001" value="0.99"></label>
+                  <label><span>Temperature K</span><input id="poly1Temp" type="number" step="0.01" value="300"></label>
+                  <label><span>Reaction probability</span><input id="poly1Prob" type="number" min="0" max="1" step="0.001" value="0.2"></label>
+                  <label class="advanced-field"><span>Seed</span><input id="poly1Seed" type="number" min="1" placeholder="auto"></label>
+                </fieldset>
+                <fieldset id="polyStage2Fieldset">
+                  <legend>Stage 2</legend>
+                  <label><span>Monomers / max bonds</span><input id="poly2Monomers" type="number" min="1" value="2999"></label>
+                  <label><span>Target conversion</span><input id="poly2Xlinkd" type="number" min="0" max="1" step="0.001" value="0.99"></label>
+                  <label><span>Temperature K</span><input id="poly2Temp" type="number" step="0.01" value="650"></label>
+                  <label><span>Reaction probability</span><input id="poly2Prob" type="number" min="0" max="1" step="0.001" value="0.2"></label>
+                  <label class="advanced-field"><span>Seed</span><input id="poly2Seed" type="number" min="1" placeholder="auto"></label>
+                </fieldset>
+              </div>
+            </section>
+
+            <section class="advanced-block advanced-field">
+              <h2>Advanced Timing And Output</h2>
+              <div class="prepare-grid dense">
+                <fieldset>
+                  <legend>Densify</legend>
+                  <label><span>Velocity seed</span><input id="densifyVelocitySeed" type="number" min="1" placeholder="auto"></label>
+                  <label><span>NVT steps</span><input id="densifyNvtSteps" type="number" min="0" value="100000"></label>
+                  <label><span>NPT loops</span><input id="densifyNptLoops" type="number" min="1" value="50"></label>
+                  <label><span>NPT steps/chunk</span><input id="densifyNptSteps" type="number" min="1" value="20000"></label>
+                  <label><span>Deform rate A/ns</span><input id="densifyRate" type="number" step="0.01" value="20"></label>
+                  <label><span>Thermo frequency</span><input id="densifyThermoFreq" type="number" min="1" value="2000"></label>
+                </fieldset>
+                <fieldset>
+                  <legend>Anneal</legend>
+                  <label><span>Heat steps</span><input id="annealHeatSteps" type="number" min="1" value="100000"></label>
+                  <label><span>Cooling step K</span><input id="annealCoolStep" type="number" step="0.01" value="25"></label>
+                  <label><span>Cooling segment steps</span><input id="annealCoolSteps" type="number" min="1" value="1000000"></label>
+                </fieldset>
+                <fieldset>
+                  <legend>Equilibration</legend>
+                  <label><span>First eq total steps</span><input id="firstEqSteps" type="number" min="1" value="4000000"></label>
+                  <label><span>First eq loop size</span><input id="firstEqLoopTime" type="number" min="1" value="25000"></label>
+                  <label><span>Final eq total steps</span><input id="finalEqSteps" type="number" min="1" value="5000000"></label>
+                  <label><span>Final eq loop size</span><input id="finalEqLoopTime" type="number" min="1" value="25000"></label>
+                </fieldset>
+                <fieldset>
+                  <legend>Polymerization Timing</legend>
+                  <label><span>Stage 1 total fs</span><input id="poly1Totaltime" type="number" min="1" value="1000000"></label>
+                  <label><span>Stage 1 loop size</span><input id="poly1LoopTime" type="number" min="1" value="20000"></label>
+                  <label><span>Stage 2 total fs</span><input id="poly2Totaltime" type="number" min="1" value="1000000"></label>
+                  <label><span>Stage 2 loop size</span><input id="poly2LoopTime" type="number" min="1" value="20000"></label>
+                  <label><span>Stage 2 cool start K</span><input id="poly2CoolStart" type="number" step="0.01" value="650"></label>
+                  <label><span>Stage 2 cool end K</span><input id="poly2CoolEnd" type="number" step="0.01" value="300"></label>
+                  <label><span>Stage 2 cool steps</span><input id="poly2CoolSteps" type="number" min="1" value="100000"></label>
+                </fieldset>
+              </div>
+            </section>
+          </section>
+        </div>
+
+        <div id="workflowView" class="view">
+          <section class="status-band" id="missingBand">
+            <h2>Readiness</h2>
+            <div id="missingList" class="missing-list"></div>
+          </section>
+
+          <section class="pipeline-wrap">
+            <div class="section-heading">
+              <h2>Main Pipeline</h2>
+              <p id="stageSummary">0 stages checked</p>
+            </div>
+            <div id="pipeline" class="pipeline"></div>
+          </section>
+
+          <section class="lower-grid">
+            <div class="artifact-panel">
+              <div class="section-heading">
+                <h2>Generated Files</h2>
+                <p id="artifactSummary">No artifacts scanned</p>
+              </div>
+              <div id="artifactList" class="artifact-list"></div>
+            </div>
+
+            <div class="log-panel">
+              <div class="section-heading">
+                <h2>Run Log</h2>
+                <p id="lastCommand">No command yet</p>
+              </div>
+              <pre id="runLog">Ready.</pre>
+            </div>
+          </section>
+        </div>
+
+        <div id="analysisView" class="view">
+          <section class="analysis-board">
+            <div class="analysis-toolbar">
+              <label>
+                <span>Dataset</span>
+                <select id="datasetSelect"></select>
+              </label>
+              <label>
+                <span>X axis</span>
+                <select id="xColumn"></select>
+              </label>
+              <label>
+                <span>Y axis</span>
+                <select id="yColumn"></select>
+              </label>
+              <label>
+                <span>Group</span>
+                <select id="groupColumn"></select>
+              </label>
+              <label>
+                <span>Chart</span>
+                <select id="chartType">
+                  <option value="line">Line</option>
+                  <option value="scatter">Scatter</option>
+                  <option value="bar">Bar</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="stats-strip" id="statsStrip"></div>
+
+            <div class="plot-card">
+              <canvas id="analysisCanvas" width="1200" height="560"></canvas>
+            </div>
+
+            <div class="dataset-table-wrap">
+              <table id="datasetTable"></table>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

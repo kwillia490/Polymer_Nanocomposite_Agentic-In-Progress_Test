@@ -1,0 +1,32 @@
+# IFF-R bond coefficients for Polymer 
+bond_coeff 1 morse 82.696 1.914 1.53
+bond_coeff 2 class2 1.355 312.912 0 0
+bond_coeff 3 morse 123.8 1.949 1.417
+bond_coeff 4 class2 1.0982 372.825 -803.453 894.317
+bond_coeff 5 class2 1.3768 428.88 -738.235 1114.97
+bond_coeff 6 class2 1.3768 428.88 -738.235 1114.97
+bond_coeff 7 class2 0.965 532.506 -1282.9 2004.77
+bond_coeff 8 class2 0.7414 414 0 0
+bond_coeff 9 class2 1.42 480 0 0
+bond_coeff 10 class2 1.0982 372.825 -803.453 894.317
+bond_coeff 11 class2 0.65 250 0 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

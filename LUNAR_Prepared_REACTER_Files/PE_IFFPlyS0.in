@@ -1,0 +1,104 @@
+# The purpose of this script is to polymerize the PE system until it is fully polymerized or until 1 ns of sim time has been completed. NPT aniso at 300 K and 1.0 atm.  Delete H2 molecules as they are produced. Turn on long-range interactions
+
+##########################
+### Simulation history ###
+##########################
+
+#################################
+### Initialization & Settings ###
+#################################
+#---------initialization---------
+echo screen
+units           real
+dimension       3
+boundary        p p p
+variable		myid string PE_IFFPlyS0
+variable		data string PE_IFFDfyS0.dat.gz
+log		    ${myid}.log.lammps
+variable	maxbond equal 125 # This number should be the number of monomers in the box for a linear polymerization like PE. There can only be 125 bonds.
+variable	xlinkd equal 0.99 # 0.2 means 20% polymerized, so 0.99 means 99% polymerized
+variable	pBonds equal v_maxbond*v_xlinkd
+variable	Bndchk equal v_pBonds-1
+
+variable thermo_freq equal 1000
+variable dump_freq equal 10*${thermo_freq}
+timestep 1 #fs
+variable temp equal 300 # Temperature of reaction, in Kelvin
+variable prob equal 0.2 # Probability of a reaction occurring
+variable prob_seed equal 125874 # Seed for random number generator
+##############################
+### Force Field Parameters ###
+##############################
+
+atom_style	full
+bond_style class2
+angle_style class2
+dihedral_style class2
+improper_style class2
+special_bonds lj/coul 0 0 1
+pair_style lj/class2/coul/long 10.0
+pair_modify mix sixthpower
+kspace_style pppm 1e-6 # K-space must be turned on when using long-range interactions.
+read_data       ${data} extra/bond/per/atom 50 extra/angle/per/atom 50 extra/dihedral/per/atom 70 extra/improper/per/atom 60 extra/special/per/atom 20
+# These extra terms after read_data ${data} tell LAMMPS to include extra space in its data structures to accomodate the new topology as polymerization proceeds.
+
+# The pre- and post-reaction templates are LAMMPS molecule files so we read them in here with the molecule command and name them pre and post.
+molecule        pre PE_PreReaction_typed_IFF_merged.lmpmol
+molecule        post PE_PostReaction_typed_IFF_merged.lmpmol
+
+##############################
+### Thermo & Dump Settings ###
+##############################
+compute ppa all pe/atom
+# Checking for residual stresses
+compute         p all pressure thermo_temp
+variable        sxx equal -0.101325*c_p[1] #in MPa
+variable        syy equal -0.101325*c_p[2] #in MPa
+variable        szz equal -0.101325*c_p[3] #in MPa
+fix             sxx_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_sxx
+fix             syy_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_syy
+fix             szz_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_szz
+
+thermo ${thermo_freq}
+thermo_style custom step temp press etotal ke pe epair ebond eangle edihed eimp elong lx ly lz pxx pyy pzz vol density f_sxx_ave f_syy_ave f_szz_ave
+
+dump 1 all custom/gz ${dump_freq} ${myid}.lammpstrj.gz x y z type id #c_ppa
+
+####################
+### Run Settings ###
+####################
+
+variable	totaltime equal 1000000  # 1 ns
+variable	totalsteps equal ${totaltime}/dt  
+variable        Time equal step*dt/1000 # time in picoseconds 1000 ps
+
+#------------------fix bond/react----------------
+# Please see the fix bond/react page in the LAMMPS documentation for more information on these parameters.
+fix	1 all bond/react stabilization yes statted_grp .03 &
+  react rxn1 all 100 0 7 pre post pre1-post1_rxn-map_uncommented.txt prob ${prob} ${prob_seed} stabilize_steps 100 
+fix     2 statted_grp_REACT npt temp ${temp} ${temp} 1000 aniso 1 1 1000
+fix     3 bond_react_MASTER_group temp/rescale 1 ${temp} ${temp} 10 1
+
+#------------User defined crosslink density---------------
+
+variable	rn1 equal f_1[1]
+variable	nBonds equal v_rn1
+
+thermo_style custom step temp press etotal ke pe epair ebond eangle edihed eimp elong lx ly lz pxx pyy pzz vol density f_sxx_ave f_syy_ave f_szz_ave f_1[1] v_nBonds v_Bndchk
+
+# Here we set up a loop with 20000 step increments and a total run time of 1000000. The loop will loop 50 times.
+variable loop_time equal $(20000)
+
+label loop
+variable poly_loop loop $(v_totalsteps/v_loop_time)
+run             ${loop_time}
+write_data ${myid}_${poly_loop}x${loop_time}.dat # Writing out a data file every so often is good practice to guard against unexpected failures (LAMMPS or HPC hardware) and running out of wall clock time.
+shell pigz ${myid}_${poly_loop}x${loop_time}.dat
+if "${poly_loop} > 1" then "shell rm ${myid}_$(v_poly_loop-1)x${loop_time}.dat.gz"
+if "${nBonds}>${Bndchk}" then "jump SELF break"
+next poly_loop
+jump SELF loop
+label break
+write_data 	${myid}.dat
+shell pigz ${myid}.dat
+shell rm ${myid}_${poly_loop}x${loop_time}.dat.gz

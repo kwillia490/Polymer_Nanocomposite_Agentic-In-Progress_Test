@@ -1,0 +1,230 @@
+
+
+Running cell_builder v1.10 / 4 October 2024
+Using Python version 3.12.7 (tags/v3.12.7:0b05ead, Oct  1 2024, 03:06:41) [MSC v.1941 64 bit (AMD64)]
+
+
+
+----------------------------------------------
+              Subcell info
+----------------------------------------------
+Total number of subcells required:  125
+Lattice spacing for subcells     : 9.37246069295572 angstrom
+
+
+Generating new simulation cell ....
+    progress:  5  %,  time:     0.0115 seconds,  density: 0.01267 g/cc  
+    progress: 11  %,  time:     0.0186 seconds,  density: 0.02535 g/cc  
+    progress: 16  %,  time:     0.0256 seconds,  density: 0.03802 g/cc  
+    progress: 22  %,  time:     0.0287 seconds,  density: 0.05070 g/cc  
+    progress: 28  %,  time:     0.0316 seconds,  density: 0.06337 g/cc  
+    progress: 33  %,  time:     0.0356 seconds,  density: 0.07605 g/cc  
+    progress: 39  %,  time:     0.0386 seconds,  density: 0.08872 g/cc  
+    progress: 44  %,  time:     0.0413 seconds,  density: 0.10140 g/cc  
+    progress: 50  %,  time:     0.0443 seconds,  density: 0.11407 g/cc  
+    progress: 56  %,  time:     0.0473 seconds,  density: 0.12675 g/cc  
+    progress: 61  %,  time:     0.0503 seconds,  density: 0.13942 g/cc  
+    progress: 67  %,  time:     0.0533 seconds,  density: 0.15210 g/cc  
+    progress: 72  %,  time:     0.0563 seconds,  density: 0.16477 g/cc  
+    progress: 78  %,  time:     0.0597 seconds,  density: 0.17744 g/cc  
+    progress: 84  %,  time:     0.0627 seconds,  density: 0.19012 g/cc  
+    progress: 89  %,  time:     0.0660 seconds,  density: 0.20279 g/cc  
+    progress: 95  %,  time:     0.0690 seconds,  density: 0.21547 g/cc  
+    progress: 100 %,  time:     0.0790 seconds,  density: 0.22633 g/cc  
+Time in seconds to insert molecules into simulation cell: 0.08173918724060059
+Inserted 125 of 125 molecules from C:/Users/RDEL1KIW/Desktop/Project_Scripts/LUNAR_Prepared_REACTER_Files/PE_Unit_typed_IFF.data
+
+
+Finding energy coeffs ....
+
+
+
+-----------------------------------------------------
+   Cell building and randomization parameters used
+-----------------------------------------------------
+unwrap atoms by iflags:                  True
+locally group atoms:                    False
+force field joining:                     none
+distance scale:                           1.2
+duplicate:                                  1
+max rotations:             {'x': 360.0, 'y': 360.0, 'z': 360.0}
+seed:                                   12345
+domain:                                 cubic
+System files used:        
+   C:/Users/RDEL1KIW/Desktop/Project_Scripts/LUNAR_Prepared_REACTER_Files/PE_Unit_typed_IFF.data qty: 125
+       atom TypeIDs offset      0
+       bond TypeIDs offset      0
+       angle TypeIDs offset     0
+       dihedral TypeIDs offset  0
+       improper TypeIDs offset  0
+
+
+Finding new molids ....
+--------------------------------------------------------------------------Cluster Analysis-------------------------------------------------------------------
+molID     Size       Mass      X-center   Y-center   Z-center        phi (°)      theta (°)        psi (°)         Filename         
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+  1        24       112.22        18.74       9.37       9.37          83.20          66.90          66.60       PE_Unit_typed_IFF.data
+  2        24       112.22         9.37       0.00      18.74         118.00          61.40         220.00       PE_Unit_typed_IFF.data
+  3        24       112.22         9.37      -9.37       9.37          37.10         212.80         284.90       PE_Unit_typed_IFF.data
+  4        24       112.22         0.00      -9.37       0.00           1.30          60.00           1.30       PE_Unit_typed_IFF.data
+  5        24       112.22        -9.37     -18.74     -18.74         269.30         203.10          75.70       PE_Unit_typed_IFF.data
+  6        24       112.22       -18.74     -18.74      -9.37         342.10         248.80         327.00       PE_Unit_typed_IFF.data
+  7        24       112.22        18.74      -9.37      -9.37         348.40          39.20         108.20       PE_Unit_typed_IFF.data
+  8        24       112.22       -18.74       9.37       0.00         206.90         307.20         166.30       PE_Unit_typed_IFF.data
+  9        24       112.22        -9.37      18.74       9.37          27.00         323.70         307.70       PE_Unit_typed_IFF.data
+  10       24       112.22        18.74      18.74       0.00         188.70         170.60          74.50       PE_Unit_typed_IFF.data
+  11       24       112.22        18.74     -18.74     -18.74          99.60         359.80          75.40       PE_Unit_typed_IFF.data
+  12       24       112.22         9.37      -9.37       0.00          11.10         152.70         135.30       PE_Unit_typed_IFF.data
+  13       24       112.22         0.00     -18.74       9.37          72.00         161.60          72.80       PE_Unit_typed_IFF.data
+  14       24       112.22        -9.37      -9.37       0.00          72.90         234.10         278.50       PE_Unit_typed_IFF.data
+  15       24       112.22        18.74     -18.74      18.74         337.20         212.20         101.90       PE_Unit_typed_IFF.data
+  16       24       112.22         9.37       9.37      18.74         169.20         210.20         283.30       PE_Unit_typed_IFF.data
+  17       24       112.22         9.37     -18.74      -9.37         171.00         133.10          49.20       PE_Unit_typed_IFF.data
+  18       24       112.22        18.74      -9.37     -18.74          27.70         263.60         188.60       PE_Unit_typed_IFF.data
+  19       24       112.22        -9.37       0.00       9.37         304.50          79.80         257.20       PE_Unit_typed_IFF.data
+  20       24       112.22         9.37       9.37       9.37         254.40         233.90          82.60       PE_Unit_typed_IFF.data
+  21       24       112.22       -18.74       0.00       0.00         306.80          55.30         217.40       PE_Unit_typed_IFF.data
+  22       24       112.22         9.37      18.74       0.00          95.50         135.20         232.50       PE_Unit_typed_IFF.data
+  23       24       112.22        -9.37      18.74     -18.74         119.70          51.30         220.40       PE_Unit_typed_IFF.data
+  24       24       112.22         0.00       0.00      18.74         209.00         284.00         315.90       PE_Unit_typed_IFF.data
+  25       24       112.22       -18.74       9.37     -18.74         274.80         327.00          24.20       PE_Unit_typed_IFF.data
+  26       24       112.22         0.00       9.37      18.74         106.40         318.30         174.80       PE_Unit_typed_IFF.data
+  27       24       112.22        18.74      18.74       9.37          18.00         149.00         327.30       PE_Unit_typed_IFF.data
+  28       24       112.22       -18.74       0.00      -9.37         211.60         219.50         235.10       PE_Unit_typed_IFF.data
+  29       24       112.22        -9.37      18.74      -9.37          44.00         257.70         310.80       PE_Unit_typed_IFF.data
+  30       24       112.22         9.37       9.37     -18.74          27.80          63.90         152.00       PE_Unit_typed_IFF.data
+  31       24       112.22         0.00       0.00       9.37         290.20         260.00          14.40       PE_Unit_typed_IFF.data
+  32       24       112.22         0.00      -9.37     -18.74         112.60         305.60         181.80       PE_Unit_typed_IFF.data
+  33       24       112.22       -18.74      18.74     -18.74         280.90         151.00         164.50       PE_Unit_typed_IFF.data
+  34       24       112.22        -9.37       0.00       0.00         125.80         183.90         250.00       PE_Unit_typed_IFF.data
+  35       24       112.22         0.00     -18.74      18.74         108.20         127.70         301.90       PE_Unit_typed_IFF.data
+  36       24       112.22        18.74      18.74      18.74         201.70         196.70          20.60       PE_Unit_typed_IFF.data
+  37       24       112.22        18.74      18.74      -9.37         108.50         182.50          12.00       PE_Unit_typed_IFF.data
+  38       24       112.22        -9.37       9.37       9.37          89.90         141.30          55.70       PE_Unit_typed_IFF.data
+  39       24       112.22         0.00      -9.37       9.37           0.80         276.90         256.20       PE_Unit_typed_IFF.data
+  40       24       112.22        -9.37       9.37      -9.37         329.50          34.00          12.50       PE_Unit_typed_IFF.data
+  41       24       112.22       -18.74      18.74      18.74          45.40         246.70         357.20       PE_Unit_typed_IFF.data
+  42       24       112.22         9.37       0.00       0.00          76.90         353.40         162.50       PE_Unit_typed_IFF.data
+  43       24       112.22         9.37      -9.37      -9.37         200.90          74.40         111.60       PE_Unit_typed_IFF.data
+  44       24       112.22        -9.37      18.74      18.74         143.00          85.40         122.90       PE_Unit_typed_IFF.data
+  45       24       112.22         0.00       0.00     -18.74         297.10         129.10         346.60       PE_Unit_typed_IFF.data
+  46       24       112.22       -18.74       0.00       9.37         159.00          30.90         252.60       PE_Unit_typed_IFF.data
+  47       24       112.22         9.37     -18.74       9.37         123.20         150.80         321.10       PE_Unit_typed_IFF.data
+  48       24       112.22        18.74     -18.74       9.37         354.20          16.50         171.70       PE_Unit_typed_IFF.data
+  49       24       112.22        18.74     -18.74      -9.37          77.70          65.70          33.50       PE_Unit_typed_IFF.data
+  50       24       112.22        -9.37      18.74       0.00          58.50         334.80         125.50       PE_Unit_typed_IFF.data
+  51       24       112.22         0.00      18.74       9.37          95.10         136.30         173.70       PE_Unit_typed_IFF.data
+  52       24       112.22         9.37     -18.74     -18.74          82.20           5.60          61.30       PE_Unit_typed_IFF.data
+  53       24       112.22        -9.37     -18.74       0.00          46.50         210.50          12.90       PE_Unit_typed_IFF.data
+  54       24       112.22         0.00     -18.74     -18.74         324.10         139.60         160.60       PE_Unit_typed_IFF.data
+  55       24       112.22         0.00       9.37       9.37         130.80         354.90          16.70       PE_Unit_typed_IFF.data
+  56       24       112.22        18.74     -18.74       0.00          98.80          40.80         198.50       PE_Unit_typed_IFF.data
+  57       24       112.22        18.74       9.37      -9.37          60.80         236.90          84.40       PE_Unit_typed_IFF.data
+  58       24       112.22        18.74       0.00      18.74         106.10         233.40         218.00       PE_Unit_typed_IFF.data
+  59       24       112.22         9.37      18.74     -18.74         147.00          64.80         303.60       PE_Unit_typed_IFF.data
+  60       24       112.22       -18.74       0.00     -18.74         116.30          15.50         350.70       PE_Unit_typed_IFF.data
+  61       24       112.22        -9.37       9.37     -18.74         356.90          37.50          38.40       PE_Unit_typed_IFF.data
+  62       24       112.22        -9.37     -18.74      18.74         216.10          84.90         225.00       PE_Unit_typed_IFF.data
+  63       24       112.22         0.00     -18.74       0.00         206.50         269.20         167.90       PE_Unit_typed_IFF.data
+  64       24       112.22         0.00      18.74      -9.37         214.60           6.20         318.50       PE_Unit_typed_IFF.data
+  65       24       112.22       -18.74      -9.37      18.74         212.90          62.00         241.00       PE_Unit_typed_IFF.data
+  66       24       112.22         0.00       0.00      -9.37         217.70         133.20         240.80       PE_Unit_typed_IFF.data
+  67       24       112.22        -9.37      -9.37     -18.74         312.30         320.10          67.00       PE_Unit_typed_IFF.data
+  68       24       112.22       -18.74      -9.37     -18.74         187.30         169.80         180.00       PE_Unit_typed_IFF.data
+  69       24       112.22        -9.37      -9.37       9.37          10.00         152.20         271.30       PE_Unit_typed_IFF.data
+  70       24       112.22         0.00     -18.74      -9.37          11.20         355.50         159.10       PE_Unit_typed_IFF.data
+  71       24       112.22         0.00      -9.37      18.74         144.80         276.10         334.30       PE_Unit_typed_IFF.data
+  72       24       112.22        18.74       0.00     -18.74         221.50         269.50         243.40       PE_Unit_typed_IFF.data
+  73       24       112.22        18.74       9.37     -18.74           6.90         130.70         192.60       PE_Unit_typed_IFF.data
+  74       24       112.22         0.00      18.74     -18.74         179.20          18.70         130.60       PE_Unit_typed_IFF.data
+  75       24       112.22         9.37      18.74      -9.37         128.20         159.50         327.90       PE_Unit_typed_IFF.data
+  76       24       112.22       -18.74      18.74       0.00         122.20          51.30         155.50       PE_Unit_typed_IFF.data
+  77       24       112.22         9.37       9.37       0.00         231.50         254.90          23.20       PE_Unit_typed_IFF.data
+  78       24       112.22       -18.74       9.37       9.37         233.50          44.90         199.10       PE_Unit_typed_IFF.data
+  79       24       112.22         0.00       9.37     -18.74          48.60          39.40         251.80       PE_Unit_typed_IFF.data
+  80       24       112.22        18.74      -9.37       9.37          71.30          13.60          20.90       PE_Unit_typed_IFF.data
+  81       24       112.22        -9.37      -9.37      18.74         126.50         342.00          88.60       PE_Unit_typed_IFF.data
+  82       24       112.22       -18.74      18.74       9.37         215.00          39.50         188.50       PE_Unit_typed_IFF.data
+  83       24       112.22       -18.74     -18.74       9.37         204.40         192.10          24.10       PE_Unit_typed_IFF.data
+  84       24       112.22        -9.37     -18.74      -9.37         173.40          90.10          90.90       PE_Unit_typed_IFF.data
+  85       24       112.22         9.37       0.00      -9.37         134.90         305.20         321.30       PE_Unit_typed_IFF.data
+  86       24       112.22        -9.37       0.00      18.74          66.40         156.90         240.90       PE_Unit_typed_IFF.data
+  87       24       112.22         0.00      18.74       0.00         222.50          98.90         280.90       PE_Unit_typed_IFF.data
+  88       24       112.22       -18.74      -9.37       9.37         193.10          73.80          85.30       PE_Unit_typed_IFF.data
+  89       24       112.22         9.37       0.00       9.37         226.70         235.20         225.70       PE_Unit_typed_IFF.data
+  90       24       112.22        -9.37       0.00      -9.37         262.00          87.60          65.20       PE_Unit_typed_IFF.data
+  91       24       112.22         0.00       0.00       0.00         275.50         299.90         186.50       PE_Unit_typed_IFF.data
+  92       24       112.22         9.37       9.37      -9.37         347.80         310.80           5.90       PE_Unit_typed_IFF.data
+  93       24       112.22       -18.74     -18.74      18.74         266.40          79.80          29.90       PE_Unit_typed_IFF.data
+  94       24       112.22       -18.74     -18.74     -18.74         321.20         314.50          28.50       PE_Unit_typed_IFF.data
+  95       24       112.22        -9.37      -9.37      -9.37         229.60         330.80          50.00       PE_Unit_typed_IFF.data
+  96       24       112.22         0.00      18.74      18.74          38.60         108.60         232.10       PE_Unit_typed_IFF.data
+  97       24       112.22       -18.74       0.00      18.74          96.50          87.40         113.70       PE_Unit_typed_IFF.data
+  98       24       112.22        -9.37       9.37       0.00          92.20         203.80         151.60       PE_Unit_typed_IFF.data
+  99       24       112.22        18.74       0.00       9.37         300.70         282.20         182.90       PE_Unit_typed_IFF.data
+ 100       24       112.22       -18.74       9.37      18.74         271.60         165.20         230.20       PE_Unit_typed_IFF.data
+ 101       24       112.22       -18.74      -9.37      -9.37         102.00         266.50         184.50       PE_Unit_typed_IFF.data
+ 102       24       112.22         0.00       9.37       0.00         354.30         342.80         206.60       PE_Unit_typed_IFF.data
+ 103       24       112.22        18.74      -9.37       0.00          44.40         212.20          12.30       PE_Unit_typed_IFF.data
+ 104       24       112.22        -9.37       9.37      18.74         210.00         221.20         278.80       PE_Unit_typed_IFF.data
+ 105       24       112.22         9.37      -9.37      18.74         150.70          97.80         163.70       PE_Unit_typed_IFF.data
+ 106       24       112.22       -18.74     -18.74       0.00         202.00         280.50          33.70       PE_Unit_typed_IFF.data
+ 107       24       112.22         0.00      -9.37      -9.37         172.60         190.60          45.40       PE_Unit_typed_IFF.data
+ 108       24       112.22        -9.37       0.00     -18.74         134.20         102.00         181.90       PE_Unit_typed_IFF.data
+ 109       24       112.22        18.74      18.74     -18.74         124.40         173.90         231.90       PE_Unit_typed_IFF.data
+ 110       24       112.22        18.74       9.37      18.74          51.00          70.10          89.20       PE_Unit_typed_IFF.data
+ 111       24       112.22        18.74      -9.37      18.74         298.40         252.60         157.60       PE_Unit_typed_IFF.data
+ 112       24       112.22        18.74       9.37       0.00         107.40         233.60         260.60       PE_Unit_typed_IFF.data
+ 113       24       112.22         9.37     -18.74       0.00         318.40         326.80          72.00       PE_Unit_typed_IFF.data
+ 114       24       112.22         9.37      -9.37     -18.74         257.60           2.20         211.50       PE_Unit_typed_IFF.data
+ 115       24       112.22       -18.74      18.74      -9.37         299.80         295.10         113.10       PE_Unit_typed_IFF.data
+ 116       24       112.22        18.74       0.00       0.00           9.70         330.20         196.30       PE_Unit_typed_IFF.data
+ 117       24       112.22         9.37       0.00     -18.74         136.10         284.10         258.50       PE_Unit_typed_IFF.data
+ 118       24       112.22        18.74       0.00      -9.37          82.50         323.70         256.20       PE_Unit_typed_IFF.data
+ 119       24       112.22        -9.37     -18.74       9.37         123.70          11.50         297.80       PE_Unit_typed_IFF.data
+ 120       24       112.22         9.37      18.74       9.37         162.80         150.30          88.20       PE_Unit_typed_IFF.data
+ 121       24       112.22       -18.74      -9.37       0.00         229.80         102.50          94.30       PE_Unit_typed_IFF.data
+ 122       24       112.22         9.37      18.74      18.74          37.70         325.10          83.50       PE_Unit_typed_IFF.data
+ 123       24       112.22         0.00       9.37      -9.37         102.90         229.20           2.30       PE_Unit_typed_IFF.data
+ 124       24       112.22         9.37     -18.74      18.74           6.70          61.90         230.70       PE_Unit_typed_IFF.data
+ 125       24       112.22       -18.74       9.37      -9.37         238.40         323.20         321.50       PE_Unit_typed_IFF.data
+
+
+
+--------------------------------------
+Atoms/Bonds/Angles/Dihedrals/Impropers
+--------------------------------------
+natoms:            3000 
+nbonds:            2875 
+nangles:           5250 
+ndihedrals:        7125 
+nimpropers:        3250 
+
+
+---------------------------------------
+System Unit cell, volume, mass, density
+---------------------------------------
+Lx:         46.86230  angstrom  
+Ly:         46.86230  angstrom  
+Lz:         46.86230  angstrom  
+volume:    1.0291E-19 cm^3      
+mass:      2.3293E-20 grams     
+density:    0.22633   g/cc      
+Using path from 1st file in files dictionary to set parent_directory ...
+
+
+Writing PE_Test_System script
+
+
+All outputs can be found in C:\Users\RDEL1KIW\Desktop\Project_Scripts\LUNAR_Prepared_REACTER_Files directory
+
+
+Normal program termination
+
+
+Execution time in seconds: 0.7469511032104492
+
+
+Number of WARNING(s) and ERROR(s)
+  0 WARNING(s)
+  0 ERROR(s)

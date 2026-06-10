@@ -1,0 +1,89 @@
+# The purpose of this script is to equilibrate the system. NPT iso at 300 K and 1.0 atm over 4 ns.
+
+##########################
+### Simulation history ###
+##########################
+# IFF
+
+#################################
+### Initialization & Settings ###
+#################################
+
+echo both
+units           real
+dimension       3
+boundary        p p p
+variable		myid string Polymer_ANEq_R1
+variable		data string Polymer_AN_R1.dat.gz
+log		    ${myid}.log.lammps
+
+variable thermo_freq equal 10000
+variable dump_freq equal 20*${thermo_freq}
+timestep 1 #fs
+
+##############################
+### Force Field Parameters ###
+##############################
+
+atom_style	full
+bond_style class2
+angle_style class2
+dihedral_style class2
+improper_style class2
+special_bonds lj/coul 0 0 1
+pair_style lj/class2/coul/long 10.0
+pair_modify mix sixthpower
+kspace_style pppm 1e-6
+read_data       ${data} 
+
+##############################
+### Thermo & Dump Settings ###
+##############################
+
+# Checking for residual stresses
+compute         p all pressure thermo_temp
+variable        sxx equal -0.101325*c_p[1] #in MPa
+variable        syy equal -0.101325*c_p[2] #in MPa
+variable        szz equal -0.101325*c_p[3] #in MPa
+fix             sxx_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_sxx
+fix             syy_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_syy
+fix             szz_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_szz
+
+thermo ${thermo_freq}
+thermo_style custom step temp press etotal ke pe epair ebond eangle edihed eimp elong lx ly lz pxx pyy pzz vol density f_sxx_ave f_syy_ave f_szz_ave
+
+dump 1 all custom/gz ${dump_freq} ${myid}.lammpstrj.gz xu yu zu type id 
+
+####################
+### Run Settings ###
+####################
+variable loop_time equal $(25000)
+
+fix 2 all balance ${loop_time} 1.05 shift xyz 20 1.05
+fix 1 all npt temp 300 300 1000 iso 1.0 1.0 1000
+
+label run_loop_npt
+variable run_loop_npt loop $(4000000/v_loop_time)
+run $(v_loop_time)
+write_data ${myid}_NPT${run_loop_npt}x${loop_time}.dat
+shell pigz ${myid}_NPT${run_loop_npt}x${loop_time}.dat
+if "${run_loop_npt} > 1" then "shell rm ${myid}_NPT$(v_run_loop_npt-1)x${loop_time}.dat.gz"
+next run_loop_npt
+jump SELF run_loop_npt
+
+write_data ${myid}.dat
+shell pigz ${myid}.dat
+shell rm ${myid}_NPT$(4000000/v_loop_time)x${loop_time}.dat.gz
+
+unfix 2
+unfix 1
+
+#Run density profile
+fix 1 all nvt temp 300 300 1000
+compute x all chunk/atom bin/1d x lower $(lx/20) units box
+compute y all chunk/atom bin/1d y lower $(ly/20) units box
+compute z all chunk/atom bin/1d z lower $(lz/20) units box
+fix 2 all ave/chunk 1000 1 1000 x density/mass file ${myid}_densityprofile_x.txt
+fix 3 all ave/chunk 1000 1 1000 y density/mass file ${myid}_densityprofile_y.txt
+fix 4 all ave/chunk 1000 1 1000 z density/mass file ${myid}_densityprofile_z.txt
+run                0 # 1 ps

@@ -1,0 +1,139 @@
+# The purpose of this script is to anneal the system. Ramp to 500 K over 100 ps and then anneal at a rate of 25 K/ns until 300 K. NVT
+
+##########################
+### Simulation history ###
+##########################
+# IFF
+
+#################################
+### Initialization & Settings ###
+#################################
+
+echo screen
+units           real
+dimension       3
+boundary        p p p
+variable		myid string Polymer_AN_R1
+variable		data string Polymer_Densify_R1.dat.gz
+log		    ${myid}.log.lammps
+
+variable thermo_freq equal 10000
+variable dump_freq equal 20*${thermo_freq}
+timestep 1 #fs
+
+##############################
+### Force Field Parameters ###
+##############################
+
+atom_style	full
+bond_style class2
+angle_style class2
+dihedral_style class2
+improper_style class2
+special_bonds lj/coul 0 0 1
+pair_style lj/class2/coul/long 10.0
+pair_modify mix sixthpower
+kspace_style pppm 1e-6
+read_data       ${data} 
+
+##############################
+### Thermo & Dump Settings ###
+##############################
+
+# Checking for residual stresses
+compute         p all pressure thermo_temp
+variable        sxx equal -0.101325*c_p[1] #in MPa
+variable        syy equal -0.101325*c_p[2] #in MPa
+variable        szz equal -0.101325*c_p[3] #in MPa
+fix             sxx_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_sxx
+fix             syy_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_syy
+fix             szz_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_szz
+
+thermo ${thermo_freq}
+thermo_style custom step temp press etotal ke pe epair ebond eangle edihed eimp elong lx ly lz pxx pyy pzz vol density f_sxx_ave f_syy_ave f_szz_ave
+
+# dump 1 all custom/gz ${dump_freq} ${myid}.lammpstrj.gz x y z type id 
+
+####################
+### Run Settings ###
+####################
+
+fix 2 all balance 100000 1.05 shift xyz 20 1.05
+fix 1 all nvt temp 300 600 1000
+run 100000 # 100 ps
+unfix 1
+
+fix 1 all nvt temp 600 575 1000
+run 1000000 # 1 ns
+unfix 1
+write_data ${myid}_575K.dat
+shell pigz ${myid}_575K.dat
+
+fix 1 all nvt temp 575 550 1000
+run 1000000 # 1 ns
+unfix 1
+write_data ${myid}_550K.dat
+shell pigz ${myid}_550K.dat
+
+fix 1 all nvt temp 550 525 1000
+run 1000000 # 1 ns
+unfix 1
+write_data ${myid}_525K.dat
+shell pigz ${myid}_525K.dat
+
+fix 1 all nvt temp 525 500 1000
+run 1000000 # 1 ns
+unfix 1
+write_data ${myid}_500K.dat
+shell pigz ${myid}_500K.dat
+
+fix 1 all nvt temp 500 475 1000
+run 1000000 # 1 ns
+unfix 1
+write_data ${myid}_475K.dat
+shell pigz ${myid}_475K.dat
+
+fix 1 all nvt temp 475 450 1000
+run 1000000 # 1 ns
+unfix 1
+write_data ${myid}_450K.dat
+shell pigz ${myid}_450K.dat
+
+fix 1 all nvt temp 450 425 1000
+run 1000000 # 1 ns
+unfix 1
+write_data ${myid}_425K.dat
+shell pigz ${myid}_425K.dat
+
+fix 1 all nvt temp 425 400 1000
+run 1000000 # 1 ns
+unfix 1
+write_data ${myid}_400K.dat
+shell pigz ${myid}_400K.dat
+
+fix 1 all nvt temp 400 375 1000
+run 1000000 # 1 ns
+unfix 1
+write_data ${myid}_375K.dat
+shell pigz ${myid}_375K.dat
+
+fix 1 all nvt temp 375 350 1000
+run 1000000 # 1 ns
+unfix 1
+write_data ${myid}_350K.dat
+shell pigz ${myid}_350K.dat
+
+fix 1 all nvt temp 350 325 1000
+run 1000000 # 1 ns
+unfix 1
+write_data ${myid}_325K.dat
+shell pigz ${myid}_325K.dat
+
+fix 1 all nvt temp 325 300 1000
+run 1000000 # 1 ns
+unfix 1
+
+write_data ${myid}.dat
+shell pigz ${myid}.dat
+
+shell rm ${myid}_575K.dat.gz ${myid}_550K.dat.gz ${myid}_525K.dat.gz ${myid}_500K.dat ${myid}_475K.dat.gz ${myid}_450K.dat.gz ${myid}_425K.dat.gz ${myid}_400K.dat.gz ${myid}_375K.dat.gz ${myid}_350K.dat.gz ${myid}_325K.dat.gz

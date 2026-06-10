@@ -1,0 +1,113 @@
+# The purpose of this script is to polymerize the Polymer system.
+
+##########################
+### Simulation history ###
+##########################
+
+#################################
+### Initialization & Settings ###
+#################################
+#---------initialization---------
+echo screen
+units           real
+dimension       3
+boundary        p p p
+variable		myid string Polymer_ANEqPly_R1_1
+variable		data string Polymer_ANEq_R1.dat.gz
+log		    ${myid}.log.lammps
+variable	maxbond equal 2999
+variable	xlinkd equal 0.99 # 0.2 means 20% crosslink density
+variable	pBonds equal v_maxbond*v_xlinkd
+variable	Bndchk equal v_pBonds-1
+
+variable thermo_freq equal 1000
+variable dump_freq equal 10*${thermo_freq}
+timestep 1 #fs
+variable temp equal 300
+variable prob equal 0.2
+variable prob_seed equal 34825
+
+##############################
+### Force Field Parameters ###
+##############################
+
+atom_style	full
+bond_style class2
+angle_style class2
+dihedral_style class2
+improper_style class2
+special_bonds lj/coul 0 0 1
+pair_style lj/class2/coul/long 10.0
+pair_modify mix sixthpower
+kspace_style pppm 1e-6
+read_data       ${data} extra/bond/per/atom 50 extra/angle/per/atom 50 extra/dihedral/per/atom 70 extra/improper/per/atom 60 extra/special/per/atom 20
+
+
+molecule        pre Polymer_Pre-Rxn.template
+molecule        post Polymer_Post-Rxn.template
+
+##############################
+### Thermo & Dump Settings ###
+##############################
+compute ppa all pe/atom
+# Checking for residual stresses
+compute         p all pressure thermo_temp
+variable        sxx equal -0.101325*c_p[1] #in MPa
+variable        syy equal -0.101325*c_p[2] #in MPa
+variable        szz equal -0.101325*c_p[3] #in MPa
+fix             sxx_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_sxx
+fix             syy_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_syy
+fix             szz_ave all ave/time 1 ${thermo_freq} ${thermo_freq} v_szz
+
+thermo ${thermo_freq}
+thermo_style custom step temp press etotal ke pe epair ebond eangle edihed eimp elong lx ly lz pxx pyy pzz vol density f_sxx_ave f_syy_ave f_szz_ave
+
+dump 1 all custom/gz ${dump_freq} ${myid}.lammpstrj.gz x y z type id #c_ppa
+
+####################
+### Run Settings ###
+####################
+
+variable	totaltime equal 1000000  # 1 ns
+variable	totalsteps equal ${totaltime}/dt  
+variable        Time equal step*dt/1000 # time in picoseconds 1000 ps
+
+#------------------fix bond/react----------------
+fix	1 all bond/react stabilization yes statted_grp .03 &
+  react rxn1 all 100 0 7 pre post map_file_Polymer_deleteH2.txt prob ${prob} ${prob_seed} stabilize_steps 100 
+fix     2 statted_grp_REACT npt temp ${temp} ${temp} 1000 aniso 1.0 1.0 1000
+fix     3 bond_react_MASTER_group temp/rescale 1 ${temp} ${temp} 10 1
+
+#------------User defined crosslink density---------------
+
+variable	rn1 equal f_1[1]
+variable	nBonds equal v_rn1
+
+thermo_style custom step temp press etotal ke pe epair ebond eangle edihed eimp elong lx ly lz pxx pyy pzz vol density f_sxx_ave f_syy_ave f_szz_ave f_1[1] v_nBonds v_Bndchk
+
+variable loop_time equal $(20000)
+
+label loop1
+variable poly_loop1 loop $(v_totalsteps/v_loop_time)
+run             ${loop_time}
+write_data ${myid}_${poly_loop1}x${loop_time}.data
+shell pigz ${myid}_${poly_loop1}x${loop_time}.data
+if "${poly_loop1} > 1" then "shell rm ${myid}_$(v_poly_loop1-1)x${loop_time}.data.gz"
+if "$(v_nBonds/v_maxbond)>0.99" then "jump SELF break1"
+next poly_loop1
+jump SELF loop1
+label break1
+write_data 	${myid}.data nofix
+shell pigz ${myid}.data
+unfix 3
+unfix 2
+unfix 1
+#Run density profile
+fix 1 all nvt temp 300 300 1000
+compute x all chunk/atom bin/1d x lower $(lx/20) units box
+compute y all chunk/atom bin/1d y lower $(ly/20) units box
+compute z all chunk/atom bin/1d z lower $(lz/20) units box
+fix 2 all ave/chunk 1000 1 1000 x density/mass file ${myid}_densityprofile_x.txt
+fix 3 all ave/chunk 1000 1 1000 y density/mass file ${myid}_densityprofile_y.txt
+fix 4 all ave/chunk 1000 1 1000 z density/mass file ${myid}_densityprofile_z.txt
+run                1000 # 1 ps
